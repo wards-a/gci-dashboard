@@ -1,0 +1,225 @@
+// schema.prisma (potongan inti)
+
+
+datasource db {
+provider = "postgresql"
+url = env("DATABASE_URL")
+}
+
+
+generator client {
+provider = "prisma-client-js"
+}
+
+
+enum UoM {
+  PCS
+  METER
+  KG
+  ROLL
+  PACK
+}
+
+
+enum WoStatus {
+  DRAFT
+  RELEASED
+  IN_PROGRESS
+  DONE
+  CANCELED
+}
+
+
+enum OpStatus {
+  QUEUED
+  RUNNING
+  PAUSED
+  DONE
+  REWORK
+  SCRAP
+}
+
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  name String?
+  password String // hash
+  role Role @default(OPERATOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+enum Role {
+  ADMIN
+  PLANNER
+  QC
+  WAREHOUSE
+  OPERATOR
+}
+
+
+model Supplier {
+  id String @id @default(cuid())
+  name String
+  code String @unique
+  phone String?
+  email String?
+  address String?
+  createdAt DateTime @default(now())
+}
+
+model Material {
+  id String @id @default(cuid())
+  sku String @unique
+  name String
+  uom UoM
+  cost Decimal @db.Decimal(12,2)
+  minStock Int @default(0)
+  createdAt DateTime @default(now())
+  bomItems BomItem[]
+  stockMoves StockMove[]
+}
+
+model Product {
+  id String @id @default(cuid())
+  code String @unique
+  name String
+  variants ProductVariant[]
+}
+
+
+model ProductVariant {
+  id String @id @default(cuid())
+  product Product @relation(fields: [productId], references: [id])
+  productId String
+  color String?
+  size String?
+  bom Bom?
+  uniqueCode String @unique // misal: PRT-001-RED-S
+  workOrders WorkOrder[]
+}
+
+
+model Bom {
+  id String @id @default(cuid())
+  productVar ProductVariant @relation(fields: [productVarId], references: [id])
+  productVarId String @unique
+  items BomItem[]
+  scrapPct Float @default(0) // allowance
+}
+
+model BomItem {
+  id String @id @default(cuid())
+  bom Bom @relation(fields: [bomId], references: [id])
+  bomId String
+  material Material @relation(fields: [materialId], references: [id])
+  materialId String
+  qtyPerUnit Float
+}
+
+
+model WorkCenter {
+  id String @id @default(cuid())
+  code String @unique
+  name String
+  operations Operation[]
+}
+
+
+model Operation {
+  id String @id @default(cuid())
+  name String
+  workCenter WorkCenter @relation(fields: [workCenterId], references: [id])
+  workCenterId String
+  stdTimeMin Float // waktu standar per unit (menit)
+  woOperations WoOperation[]
+}
+
+model WorkOrder {
+  id String @id @default(cuid())
+  code String @unique
+  productVar ProductVariant @relation(fields: [productVarId], references: [id])
+  productVarId String
+  qtyPlanned Int
+  dueDate DateTime?
+  status WoStatus @default(DRAFT)
+  operations WoOperation[]
+  createdBy String
+  createdAt DateTime @default(now())
+}
+
+
+model WoOperation {
+  id String @id @default(cuid())
+  wo WorkOrder @relation(fields: [woId], references: [id])
+  woId String
+  operation Operation @relation(fields: [operationId], references: [id])
+  operationId String
+  qtyGood Int @default(0)
+  qtyReject Int @default(0)
+  seq Int
+  status OpStatus @default(QUEUED)
+  startedAt DateTime?
+  finishedAt DateTime?
+  operatorId String?
+  productionEntries ProductionEntry[]
+}
+
+model Location {
+  id String @id @default(cuid())
+  code String @unique
+  name String
+  fromLocs StockMove[] @relation("fromLoc")
+  toLocs StockMove[] @relation("toLoc")
+}
+
+
+model StockMove {
+  id String @id @default(cuid())
+  material Material @relation(fields: [materialId], references: [id])
+  materialId String
+  fromLoc Location? @relation("fromLoc", fields: [fromLocId], references: [id])
+  fromLocId String?
+  toLoc Location? @relation("toLoc", fields: [toLocId], references: [id])
+  toLocId String?
+  qty Float
+  createdAt DateTime @default(now())
+  ref String?
+}
+
+
+model QCInspection {
+  id String @id @default(cuid())
+  woId String
+  opId String?
+  result String // PASS/REJECT + catatan
+  defects String? // JSON string list defect
+  images String? // URL[]
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  actorId String
+  action String
+  entity String
+  entityId String
+  data String?
+  createdAt DateTime @default(now())
+}
+
+model ProductionEntry {
+  id String @id @default(cuid())
+  woOperation WoOperation @relation(fields: [woOperationId], references: [id])
+  woOperationId String
+  date DateTime // tanggal input (gunakan awal shift)
+  shift String? // contoh: A/B/C atau 1/2/3
+  qtyGood Int @default(0)
+  qtyReject Int @default(0)
+  defects String? // JSON list defect preset
+  note String?
+  actorId String // Admin/Planner yang input
+  createdAt DateTime @default(now())
+}
