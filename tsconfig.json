@@ -18,7 +18,7 @@
         "name": "next"
       }
     ],
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "paths": {
       "@/*": ["./src/*"]
     }
