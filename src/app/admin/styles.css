@@ -1,15 +1,22 @@
-/* Checkbox hack untuk drawer mobile (tanpa js tambahan) */
+/* Checkbox hidden */
 #drawer {
-  display: none;
+  position: fixed;
+  opacity: 0;
+  pointer-events: none;
 }
+
+/* Default: sembunyikan overlay & panel */
 .drawer-overlay,
 .drawer-panel {
   display: none;
 }
+
+/* Saat checked: tampilkan */
 #drawer:checked ~ .drawer-overlay,
 #drawer:checked ~ .drawer-panel {
   display: block;
 }
+
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -17,12 +24,13 @@
 }
 .drawer-panel {
   position: fixed;
-  inset: 0 0 0 auto;
+  inset: 0 auto 0 0;
   width: 80%;
   max-width: 300px;
   background: #fff;
   box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
 }
+
 @media (min-width: 1024px) {
   .drawer-overlay,
   .drawer-panel {

@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import "./styles.css"; // optional: style kecil untuk sidebar (dibuat di langkah 4)
+import "./styles.css";
 
 export default async function AdminLayout({
   children,
@@ -24,7 +24,7 @@ export default async function AdminLayout({
         <main className="p-4">{children}</main>
       </div>
 
-      {/* Drawer mobile */}
+      {/* Drawer mobile elements */}
       <MobileDrawer />
     </div>
   );
@@ -64,13 +64,14 @@ function Nav() {
 function Topbar() {
   return (
     <header className="h-14 border-b flex items-center justify-between px-3 lg:px-4">
-      <button
-        className="lg:hidden inline-flex items-center gap-2 px-3 py-2 rounded-xl border"
-        data-open-drawer
+      {/* Ganti button menjadi label agar langsung toggle checkbox */}
+      <label
+        htmlFor="drawer"
+        className="lg:hidden inline-flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer"
       >
         <BurgerIcon />
         Menu
-      </button>
+      </label>
       <div className="hidden lg:block" />
       <div className="text-sm opacity-70">Admin</div>
     </header>
@@ -78,16 +79,20 @@ function Topbar() {
 }
 
 function MobileDrawer() {
-  // clientless approach: gunakan css checkbox hack untuk toggle drawer
   return (
     <>
+      {/* Checkbox global untuk toggle */}
       <input id="drawer" type="checkbox" className="drawer-toggle" />
-      <label htmlFor="drawer" className="hidden" data-close-drawer></label>
-      <div className="drawer-overlay" />
+      {/* Overlay menutup saat diklik */}
+      <label htmlFor="drawer" className="drawer-overlay" />
+      {/* Panel menu */}
       <aside className="drawer-panel">
         <div className="p-4 border-b flex items-center justify-between">
           <Logo />
-          <label htmlFor="drawer" className="px-3 py-2 rounded-xl border">
+          <label
+            htmlFor="drawer"
+            className="px-3 py-2 rounded-xl border cursor-pointer"
+          >
             Tutup
           </label>
         </div>
@@ -95,18 +100,6 @@ function MobileDrawer() {
           <Nav />
         </div>
       </aside>
-      {/* bridge button: clicking topbar button toggles checkbox via js-free data attrs */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-(function(){
-const openBtn = document.querySelector('[data-open-drawer]');
-const closeLabel = document.querySelector('label[for="drawer"]');
-if(openBtn && closeLabel){ openBtn.addEventListener('click', ()=> (closeLabel as HTMLLabelElement).click()) }
-})();
-`,
-        }}
-      />
     </>
   );
 }
