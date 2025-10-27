@@ -8,11 +8,13 @@ export default async function AllocatePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: { item?: string; q?: string };
+  searchParams: Promise<{ item?: string; q?: string }>;
 }) {
   const session = await auth();
   if (!session) redirect("/login");
-  const item = searchParams.item;
+  const { item } = await searchParams;
+  const searchitem = item;
+  const { q } = await searchParams;
   const { id } = await params;
   if (!item) redirect(`/admin/preorders/${id}`);
 
@@ -21,7 +23,7 @@ export default async function AllocatePage({
     candidates: any[];
   }>(
     `/api/admin/preorders/${id}/allocate-candidates?item=${item}${
-      searchParams.q ? `&q=${encodeURIComponent(searchParams.q)}` : ""
+      q ? `&q=${encodeURIComponent(q)}` : ""
     }`
   );
 
