@@ -1,19 +1,15 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import PreOrderForm from "@/components/preorders/PreOrderForm";
+import { absoluteFetch } from "@/lib/http";
 
-async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("fetch failed");
-  return res.json();
-}
+type Params = Promise<{ id: string }>;
 
-export default async function EditPO({ params }: { params: { id: string } }) {
+export default async function EditPO({ params }: { params: Params }) {
   const session = await auth();
   if (!session) redirect("/login");
-  const { po } = await fetchJSON<{ po: any }>(
-    `/api/admin/preorders/${params.id}`
-  );
+  const { id } = await params;
+  const { po } = await absoluteFetch<{ po: any }>(`/api/admin/preorders/${id}`);
   const initial = {
     id: po.id,
     code: po.code,
