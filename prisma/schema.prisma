@@ -1,5 +1,6 @@
 // schema.prisma (potongan inti)
-
+@@index([preOrderItemId], map: "idx_alloc_poi")
+@@index([workOrderId], map: "idx_alloc_wo")
 
 datasource db {
 provider = "postgresql"
@@ -20,7 +21,6 @@ enum UoM {
   PACK
 }
 
-
 enum WoStatus {
   DRAFT
   RELEASED
@@ -28,7 +28,6 @@ enum WoStatus {
   DONE
   CANCELED
 }
-
 
 enum OpStatus {
   QUEUED
@@ -39,6 +38,34 @@ enum OpStatus {
   SCRAP
 }
 
+enum PreOrderStatus {
+  DRAFT 
+  CONFIRMED 
+  PARTIALLY_FULFILLED 
+  FULFILLED 
+  CANCELED
+}
+
+enum PreOrderChannel {
+  ONLINE
+  OFFLINE
+  MARKETPLACE
+  OTHER
+}
+
+enum ShipOption {
+  PICKUP
+  COURIER
+  JNE
+  JNT
+  SICEPAT
+  GOJEK
+  GRAB
+  POS
+  LALAMOVE
+  BARAKA
+  OTHER
+}
 
 model User {
   id String @id @default(cuid())
@@ -50,7 +77,6 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
-
 enum Role {
   ADMIN
   PLANNER
@@ -59,6 +85,77 @@ enum Role {
   OPERATOR
 }
 
+model Customer {
+  id String @id @default(cuid())
+  name String
+  email String? @unique
+  phone String?
+  preOrders PreOrder[]
+  createdAt DateTime @default(now())
+}
+
+model PreOrder {
+  id String @id @default(cuid())
+  code String @unique
+  customer Customer? @relation(fields: [customerId], references: [id])
+  customerId String?
+  channel PreOrderChannel @default(ONLINE)
+  status PreOrderStatus @default(DRAFT)
+  orderDate DateTime @default(now())
+  promisedShip DateTime? // janji kirim
+  depositAmt Int? // DP (jika ada) dalam satuan minor (mis. rupiah)
+  note String?
+  shipAddress String? // alamat kirim (plain text singkat). Jika perlu struktur: jadikan JSON string
+  shipOption ShipOption? // opsi kirim
+  salesName String? // nama sales/marketing
+  brandingReq String? // syarat branding khusus
+  csNotes String?
+  items PreOrderItem[]
+  payments PaymentRecord[]
+  createdBy String
+  createdAt DateTime @default(now())
+}
+
+model PreOrderItem {
+  id String @id @default(cuid())
+  preOrder PreOrder @relation(fields: [preOrderId], references: [id])
+  preOrderId String
+  title String? // nama/model item
+  size String? // ukuran
+  color String? // warna
+  material String? // bahan
+  partition String? // partisi/kompartemen
+  accessories String? // aksesoris
+  finishing String? // finishing
+  specsJson String? // JSON string (opsional) untuk field tambahan
+  qtyOrdered Int
+  qtyAllocated Int @default(0) // sudah dialokasikan ke WO
+  qtyFulfilled Int @default(0) // sudah terkirim
+  unitPrice Int? // optional, untuk laporan
+  note String?
+  allocations Allocation[]
+}
+
+model Allocation {
+  id String @id @default(cuid())
+  preOrderItem PreOrderItem @relation(fields: [preOrderItemId], references: [id])
+  preOrderItemId String
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id])
+  workOrderId String
+  qty Int
+  createdAt DateTime @default(now())
+}
+
+
+model PaymentRecord {
+  id String @id @default(cuid())
+  preOrder PreOrder @relation(fields: [preOrderId], references: [id])
+  preOrderId String
+  date DateTime @default(now())
+  amount Int // rupiah minor unit
+  method String? // cash, transfer, e-wallet
+  note String?
+}
 
 model Supplier {
   id String @id @default(cuid())
@@ -148,6 +245,7 @@ model WorkOrder {
   operations WoOperation[]
   createdBy String
   createdAt DateTime @default(now())
+  allocations Allocation[]
 }
 
 

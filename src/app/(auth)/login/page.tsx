@@ -29,7 +29,7 @@ export default function Page() {
       setError("Email atau password salah");
       return;
     }
-    router.replace("/admin/entries/bulk");
+    router.replace("/admin");
   }
 
   return (

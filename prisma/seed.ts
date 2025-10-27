@@ -131,5 +131,47 @@ await prisma.user.upsert({
 });
 console.log("Seeded admin:", email, "/", plain);
 
+const customer = await prisma.customer.upsert({
+  where: { email: "buyer@example.com" },
+  update: { name: "Buyer Demo" },
+  create: { email: "buyer@example.com", name: "Buyer Demo", phone: "0812xxxx" },
+});
+
+const product = await prisma.product.upsert({
+  where: { code: "BAG-001" },
+  update: {},
+  create: { code: "BAG-001", name: "Backpack Alpha" },
+});
+const variant = await prisma.productVariant.upsert({
+  where: { uniqueCode: "BAG-001-BLACK" },
+  update: {},
+  create: {
+    productId: product.id,
+    color: "Black",
+    size: "Std",
+    uniqueCode: "BAG-001-BLACK",
+  },
+});
+
+const po = await prisma.preOrder.create({
+  data: {
+    code: "PO-DEM-001",
+    customerId: customer.id,
+    status: "CONFIRMED",
+    promisedShip: new Date(Date.now() + 5 * 86400000),
+    createdBy: "seed",
+    items: {
+      create: [
+        { productVarId: variant.id, qtyOrdered: 120, unitPrice: 350000 },
+      ],
+    },
+    payments: {
+      create: [{ amount: 10000000, method: "transfer", note: "DP" }],
+    },
+  },
+});
+
+console.log("Seeded PreOrder:", po.code);
+
 console.log("Seed done.");
 main().finally(() => prisma.$disconnect());
