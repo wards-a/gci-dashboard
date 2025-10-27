@@ -161,9 +161,7 @@ const po = await prisma.preOrder.create({
     promisedShip: new Date(Date.now() + 5 * 86400000),
     createdBy: "seed",
     items: {
-      create: [
-        { productVarId: variant.id, qtyOrdered: 120, unitPrice: 350000 },
-      ],
+      create: [{ title: "", qtyOrdered: 120, unitPrice: 350000 }],
     },
     payments: {
       create: [{ amount: 10000000, method: "transfer", note: "DP" }],
