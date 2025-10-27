@@ -1,6 +1,4 @@
 // schema.prisma (potongan inti)
-@@index([preOrderItemId], map: "idx_alloc_poi")
-@@index([workOrderId], map: "idx_alloc_wo")
 
 datasource db {
 provider = "postgresql"
