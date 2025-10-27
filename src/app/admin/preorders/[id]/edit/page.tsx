@@ -3,11 +3,9 @@ import { redirect } from "next/navigation";
 import PreOrderForm from "@/components/preorders/PreOrderForm";
 import { absoluteFetch } from "@/lib/http";
 
-export default async function EditPO({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+type Params = Promise<{ id: string }>;
+
+export default async function EditPO({ params }: { params: Params }) {
   const session = await auth();
   if (!session) redirect("/login");
   const { id } = await params;
