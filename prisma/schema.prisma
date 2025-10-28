@@ -41,18 +41,15 @@ enum PreOrderChannel {
 
 enum ShipOption {
   PICKUP
-  SOUVIA
-  LALAMOVE_MOTOR
-  LALAMOVE_MOBIL
-  BARAKA
-  JNE_REG
-  JNE_YES
-  JNE_JTR
+  COURIER
+  JNE
   JNT
   SICEPAT
   GOJEK
   GRAB
   POS
+  LALAMOVE
+  BARAKA
   OTHER
 }
 
