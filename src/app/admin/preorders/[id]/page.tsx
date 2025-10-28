@@ -2,11 +2,9 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { absoluteFetch } from "@/lib/http";
 
-export default async function PreOrderDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+type Params = Promise<{ id: string }>;
+
+export default async function PreOrderDetail({ params }: { params: Params }) {
   const session = await auth();
   if (!session) redirect("/login");
   const { id } = await params;
@@ -14,12 +12,14 @@ export default async function PreOrderDetail({
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{po.code}</h1>
+      <div className="sm:flex items-center justify-between space-y-4 sm:space-y-0">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-3 py-1.5 rounded-xl border text-xs">
+          <h1 className="text-2xl font-semibold">{po.code}</h1>
+          <span className="px-3 py-1.5 rounded-xl border text-xs">
             {po.status}
           </span>
+        </div>
+        <div className="flex items-center gap-2">
           <a
             className="px-3 py-1.5 rounded-xl border"
             href={`/admin/work-orders/new?poId=${po.id}`}
@@ -45,6 +45,19 @@ export default async function PreOrderDetail({
             </div>
           </div>
           <div>
+            <div className="text-sm opacity-70">Tgl. Masuk</div>
+            <div>
+              {po.orderDate
+                ? new Date(po.orderDate).toLocaleString("id-ID", {
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })
+                : "-"}
+            </div>
+          </div>
+          <div>
             <div className="text-sm opacity-70">Tgl. Kirim</div>
             <div>
               {po.promisedShip
@@ -57,10 +70,12 @@ export default async function PreOrderDetail({
                 : "-"}
             </div>
           </div>
-          <div>
+
+          {/* <div>
             <div className="text-sm opacity-70">Sales</div>
             <div>{po.salesName ?? "-"}</div>
-          </div>
+          </div> */}
+
           <div>
             <div className="text-sm opacity-70">Opsi Kirim</div>
             <div>{po.shipOption ?? "-"}</div>
@@ -71,10 +86,10 @@ export default async function PreOrderDetail({
           </div>
         </div>
         <div className="rounded-2xl border p-4 space-y-2">
-          <div>
+          {/* <div>
             <div className="text-sm opacity-70">Syarat Branding Khusus</div>
             <div className="whitespace-pre-wrap">{po.brandingReq ?? "-"}</div>
-          </div>
+          </div> */}
           <div>
             <div className="text-sm opacity-70">Catatan CS</div>
             <div className="whitespace-pre-wrap">{po.csNotes ?? "-"}</div>
@@ -86,7 +101,7 @@ export default async function PreOrderDetail({
         </div>
       </div>
       {/* Tabel items tetap sama seperti sebelumnya */}
-      <div className="rounded-2xl border">
+      <div className="overflow-x-auto rounded-2xl border">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left border-b bg-gray-50">

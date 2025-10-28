@@ -1,17 +1,9 @@
 "use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { ShipOption } from "@prisma/client";
-
-const Statuses = [
-  "DRAFT",
-  "CONFIRMED",
-  "PARTIALLY_FULFILLED",
-  "FULFILLED",
-  "CANCELED",
-] as const;
-
-type VariantOpt = { id: string; label: string };
+import { PreOrderStatus } from "@prisma/client";
 
 type FormItem = {
   title: string;
@@ -34,7 +26,7 @@ const ItemSchema = z.object({
   color: z.string().optional(),
   material: z.string().optional(),
   partition: z.string().optional(),
-  accessories: z.string().optional(),
+  // accessories: z.string().optional(),
   finishing: z.string().optional(),
   note: z.string().optional(),
   specsJson: z.string().optional(),
@@ -44,22 +36,14 @@ export const Schema = z.object({
   code: z.string().min(3),
   customerName: z.string().min(1),
   customerPhone: z.string().optional(),
-  status: z
-    .enum([
-      "DRAFT",
-      "CONFIRMED",
-      "PARTIALLY_FULFILLED",
-      "FULFILLED",
-      "CANCELED",
-    ])
-    .default("DRAFT"),
+  status: z.enum(PreOrderStatus).default("DRAFT"),
   orderDate: z.string().optional(),
   promisedShip: z.string().optional(),
-  depositAmt: z.number().int().min(0).optional(),
-  salesName: z.string().optional(),
-  shipOption: z.nativeEnum(ShipOption).optional(),
+  // depositAmt: z.number().int().min(0).optional(),
+  // salesName: z.string().optional(),
+  shipOption: z.enum(ShipOption).optional(),
   shipAddress: z.string().optional(),
-  brandingReq: z.string().optional(),
+  // brandingReq: z.string().optional(),
   csNotes: z.string().optional(),
   note: z.string().optional(),
   items: z.array(ItemSchema).min(1),
@@ -75,12 +59,12 @@ export default function PreOrderForm({
   const [data, setData] = useState<any>(
     () => initial ?? { status: "DRAFT", items: [{ title: "", qtyOrdered: 1 }] }
   );
-  const [variants, setVariants] = useState<VariantOpt[]>([]);
-  const [q, setQ] = useState("");
+
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [shipOptions, setShipOptions] = useState<string[]>([]);
+  const [statuses, setPreOrderStatuses] = useState<string[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -88,6 +72,18 @@ export default function PreOrderForm({
       if (res.ok) {
         const j = await res.json();
         setShipOptions(j.options || []);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/meta/pre-order-status", {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const j = await res.json();
+        setPreOrderStatuses(j.statuses || []);
       }
     })();
   }, []);
@@ -137,11 +133,11 @@ export default function PreOrderForm({
       promisedShip: data.promisedShip
         ? new Date(data.promisedShip).toISOString()
         : undefined,
-      depositAmt: data.depositAmt ? Number(data.depositAmt) : undefined,
-      salesName: data.salesName || undefined,
+      // depositAmt: data.depositAmt ? Number(data.depositAmt) : undefined,
+      // salesName: data.salesName || undefined,
       shipOption: data.shipOption || undefined,
       shipAddress: data.shipAddress || undefined,
-      brandingReq: data.brandingReq || undefined,
+      // brandingReq: data.brandingReq || undefined,
       csNotes: data.csNotes || undefined,
       note: data.note || undefined,
       items: items.map((it: any) => ({
@@ -157,7 +153,7 @@ export default function PreOrderForm({
         color: it.color || undefined,
         material: it.material || undefined,
         partition: it.partition || undefined,
-        accessories: it.accessories || undefined,
+        // accessories: it.accessories || undefined,
         finishing: it.finishing || undefined,
         note: it.note || undefined,
       })),
@@ -195,10 +191,6 @@ export default function PreOrderForm({
       window.location.href = `/admin/preorders/${j.id}`;
     }
   }
-  const variantMap = useMemo(
-    () => Object.fromEntries(variants.map((v) => [v.id, v.label])),
-    [variants]
-  );
 
   return (
     <div className="space-y-4">
@@ -217,15 +209,15 @@ export default function PreOrderForm({
               value={data.status || "DRAFT"}
               onChange={(e) => setField("status", e.target.value)}
             >
-              {Statuses.map((s) => (
-                <option key={s} value={s}>
+              {statuses.map((s) => (
+                <option className="text-xs sm:text-base" key={s} value={s}>
                   {s}
                 </option>
               ))}
             </select>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <div className="text-xs opacity-70 mb-1">Order Date</div>
+                <div className="text-xs opacity-70 mb-1">Tgl. Masuk</div>
                 <input
                   type="date"
                   className="px-3 py-2 rounded-xl border w-full"
@@ -234,7 +226,7 @@ export default function PreOrderForm({
                 />
               </div>
               <div>
-                <div className="text-xs opacity-70 mb-1">Promised Ship</div>
+                <div className="text-xs opacity-70 mb-1">Tgl. Kirim</div>
                 <input
                   type="date"
                   className="px-3 py-2 rounded-xl border w-full"
@@ -247,56 +239,62 @@ export default function PreOrderForm({
         </div>
         <div className="rounded-2xl border p-4 space-y-3">
           <div className="text-sm font-medium">Customer</div>
-          <input
-            className="px-3 py-2 rounded-xl border"
-            placeholder="Nama Customer"
-            value={data.customerName || ""}
-            onChange={(e) => setField("customerName", e.target.value)}
-          />
-          <input
-            className="px-3 py-2 rounded-xl border"
-            placeholder="No. HP (opsional)"
-            value={data.customerPhone || ""}
-            onChange={(e) => setField("customerPhone", e.target.value)}
-          />
-          <input
+          <div className="grid gap-2">
+            <input
+              className="px-3 py-2 rounded-xl border"
+              placeholder="Nama Customer"
+              value={data.customerName || ""}
+              onChange={(e) => setField("customerName", e.target.value)}
+            />
+            <input
+              className="px-3 py-2 rounded-xl border"
+              placeholder="No. HP (opsional)"
+              value={data.customerPhone || ""}
+              onChange={(e) => setField("customerPhone", e.target.value)}
+            />
+
+            {/* <input
             className="px-3 py-2 rounded-xl border"
             placeholder="Sales"
             value={data.salesName || ""}
             onChange={(e) => setField("salesName", e.target.value)}
-          />
-          <select
-            className="px-3 py-2 rounded-xl border"
-            value={data.shipOption || ""}
-            onChange={(e) =>
-              setField("shipOption", e.target.value || undefined)
-            }
-          >
-            <option value="">Opsi Kirim</option>
-            {shipOptions.map((s) => (
-              <option key={s} value={s}>
-                {s}
+          /> */}
+
+            <select
+              className="px-3 py-2 rounded-xl border"
+              value={data.shipOption || ""}
+              onChange={(e) =>
+                setField("shipOption", e.target.value || undefined)
+              }
+            >
+              <option className="text-xs sm:text-base" value="">
+                Opsi Kirim
               </option>
-            ))}
-          </select>
-          <textarea
-            className="px-3 py-2 rounded-xl border"
-            placeholder="Alamat Kirim"
-            rows={3}
-            value={data.shipAddress || ""}
-            onChange={(e) => setField("shipAddress", e.target.value)}
-          />
+              {shipOptions.map((s) => (
+                <option className="text-xs sm:text-base" key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            <textarea
+              className="px-3 py-2 rounded-xl border"
+              placeholder="Alamat Kirim"
+              rows={3}
+              value={data.shipAddress || ""}
+              onChange={(e) => setField("shipAddress", e.target.value)}
+            />
+          </div>
         </div>
       </div>
       <div className="rounded-2xl border p-4 space-y-3">
         <div className="text-sm font-medium">Ketentuan & Catatan</div>
-        <textarea
+        {/* <textarea
           className="px-3 py-2 rounded-xl border w-full"
           placeholder="Syarat branding khusus"
           rows={2}
           value={data.brandingReq || ""}
           onChange={(e) => setField("brandingReq", e.target.value)}
-        />
+        /> */}
         <textarea
           className="px-3 py-2 rounded-xl border w-full"
           placeholder="Catatan CS"
@@ -304,7 +302,14 @@ export default function PreOrderForm({
           value={data.csNotes || ""}
           onChange={(e) => setField("csNotes", e.target.value)}
         />
-        <div className="grid grid-cols-2 gap-2">
+        <textarea
+          className="px-3 py-2 rounded-xl border w-full"
+          placeholder="Catatan umum"
+          rows={2}
+          value={data.note || ""}
+          onChange={(e) => setField("note", e.target.value)}
+        />
+        {/* <div className="grid grid-cols-2 gap-2">
           <input
             className="px-3 py-2 rounded-xl border"
             placeholder="Deposit (Rp)"
@@ -318,7 +323,7 @@ export default function PreOrderForm({
             value={data.note || ""}
             onChange={(e) => setField("note", e.target.value)}
           />
-        </div>
+        </div> */}
       </div>
       <div className="rounded-2xl border p-4">
         <div className="flex items-center justify-between">
@@ -392,12 +397,12 @@ export default function PreOrderForm({
                   value={it.partition || ""}
                   onChange={(e) => setItem(i, "partition", e.target.value)}
                 />
-                <input
+                {/* <input
                   className="px-3 py-2 rounded-xl border"
                   placeholder="Aksesoris"
                   value={it.accessories || ""}
                   onChange={(e) => setItem(i, "accessories", e.target.value)}
-                />
+                /> */}
                 <input
                   className="px-3 py-2 rounded-xl border"
                   placeholder="Finishing"
