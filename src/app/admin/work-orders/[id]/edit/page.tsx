@@ -3,11 +3,15 @@ import { redirect } from "next/navigation";
 import WorkOrderForm from "@/components/workorders/WorkOrderForm";
 import { absoluteFetch } from "@/lib/http";
 
-export default async function EditWO({ params }: { params: { id: string } }) {
+type Params = Promise<{ id: string }>;
+
+export default async function EditWO({ params }: { params: Params }) {
   const session = await auth();
   if (!session) redirect("/login");
+
+  const { id } = await params;
   const { wo } = await absoluteFetch<{ wo: any }>(
-    `/api/admin/work-orders/${params.id}`
+    `/api/admin/work-orders/${id}`
   );
   const initial = {
     id: wo.id,
