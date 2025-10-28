@@ -21,6 +21,12 @@ export default async function PreOrderDetail({
             {po.status}
           </span>
           <a
+            className="px-3 py-1.5 rounded-xl border"
+            href={`/admin/work-orders/new?poId=${po.id}`}
+          >
+            + Generate WO
+          </a>
+          <a
             href={`/admin/preorders/${po.id}/edit`}
             className="px-3 py-1.5 rounded-xl border"
           >
@@ -39,10 +45,15 @@ export default async function PreOrderDetail({
             </div>
           </div>
           <div>
-            <div className="text-sm opacity-70">Promised Ship</div>
+            <div className="text-sm opacity-70">Tgl. Kirim</div>
             <div>
               {po.promisedShip
-                ? new Date(po.promisedShip).toLocaleDateString()
+                ? new Date(po.promisedShip).toLocaleString("id-ID", {
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })
                 : "-"}
             </div>
           </div>

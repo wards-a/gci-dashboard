@@ -44,7 +44,7 @@ function Nav() {
     { href: "/admin", label: "Dashboard" },
     { href: "/admin/preorders", label: "Pre-Orders" },
     { href: "/admin/entries/bulk", label: "Bulk Entry" },
-    { href: "/admin/wo", label: "Work Orders" },
+    { href: "/admin/work-orders", label: "Work Orders" },
     { href: "/admin/reports", label: "Reports" },
   ];
   return (

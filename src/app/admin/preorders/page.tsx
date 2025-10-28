@@ -26,7 +26,7 @@ export default async function PreOrdersPage() {
               <th className="px-3">Customer</th>
               <th className="px-3">Items</th>
               <th className="px-3">Status</th>
-              <th className="px-3">Promised Ship</th>
+              <th className="px-3">Tgl. Kirim</th>
               <th className="px-3">Opsi Kirim</th>
               <th className="px-3 w-[160px]">Aksi</th>
             </tr>
