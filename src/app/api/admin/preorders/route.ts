@@ -4,12 +4,14 @@ import { auth } from "@/auth";
 import { z } from "zod";
 import { ShipOption } from "@prisma/client";
 import { mapPrismaError } from "@/lib/api/errors";
+import { generateWoCode } from "@/lib/wo";
 
 // GET PREORDERS LIST
 export async function GET(req: Request) {
   const session = await auth();
   if (!session)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") || undefined;
   const q = searchParams.get("q") || undefined;
@@ -84,7 +86,7 @@ const Body = z.object({
   promisedShip: z.string().datetime().optional().nullable(),
   depositAmt: z.coerce.number().int().min(0).optional().nullable(), // coerce
   salesName: z.string().optional().nullable(),
-  shipOption: z.nativeEnum(ShipOption).optional().nullable(),
+  shipOption: z.enum(ShipOption).optional().nullable(),
   shipAddress: z.string().optional().nullable(),
   brandingReq: z.string().optional().nullable(),
   csNotes: z.string().optional().nullable(),
@@ -100,8 +102,10 @@ export async function POST(req: Request) {
     const session = await auth();
     if (!session)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const json = await req.json();
     const body = Body.parse(json);
+
     let customer = await prisma.customer.findFirst({
       where: {
         AND: [
@@ -117,6 +121,7 @@ export async function POST(req: Request) {
         ],
       },
     });
+
     if (!customer) {
       customer = await prisma.customer.create({
         data: {
@@ -139,6 +144,7 @@ export async function POST(req: Request) {
         });
       }
     }
+
     const po = await prisma.preOrder.create({
       data: {
         code: body.code,
@@ -172,17 +178,35 @@ export async function POST(req: Request) {
           })),
         },
       },
+      include: { items: true, customer: true },
     });
-    return NextResponse.json({ ok: true, id: po.id });
+
+    // === AUTO CREATE WO ===
+    const qtyPlanned = po.items.reduce((a, it) => a + (it.qtyOrdered || 0), 0);
+    const dueDate = po.promisedShip ?? null;
+    const woCode = await generateWoCode(
+      po.code,
+      po.customer?.name || undefined
+    );
+
+    const wo = await prisma.workOrder.create({
+      data: {
+        code: woCode,
+        preOrderId: po.id,
+        qtyPlanned,
+        dueDate: dueDate ?? undefined,
+        status: "PLANNED",
+      },
+    });
+
+    return NextResponse.json({ ok: true, id: po.id, woId: wo.id });
   } catch (e: any) {
-    // ZodError → 400 dengan detail
-    if (e?.name === "ZodError") {
+    if (e?.name === "ZodError")
       return NextResponse.json(
         { error: "Validasi gagal", details: e.errors },
         { status: 400 }
       );
-    }
-    console.error("Create PO unexpected error:", e); // log ke server
+    console.error("Create PO unexpected error:", e);
     return mapPrismaError(e);
   }
 }

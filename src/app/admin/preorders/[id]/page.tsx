@@ -20,12 +20,14 @@ export default async function PreOrderDetail({ params }: { params: Params }) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <a
-            className="px-3 py-1.5 rounded-xl border"
-            href={`/admin/work-orders/new?poId=${po.id}`}
-          >
-            + Generate WO
-          </a>
+          {po.workOrder && (
+            <a
+              className="px-3 py-1.5 rounded-xl border"
+              href={`/admin/work-orders/${po.workOrder[0].id}`}
+            >
+              WO: {po.workOrder[0].code}
+            </a>
+          )}
           <a
             href={`/admin/preorders/${po.id}/edit`}
             className="px-3 py-1.5 rounded-xl border"
@@ -107,10 +109,10 @@ export default async function PreOrderDetail({ params }: { params: Params }) {
             <tr className="text-left border-b bg-gray-50">
               <th className="py-2 px-3">Item</th>
               <th className="px-3">Qty Order</th>
-              <th className="px-3">Allocated</th>
+              {/* <th className="px-3">Allocated</th> */}
               <th className="px-3">Fulfilled</th>
               <th className="px-3">Sisa</th>
-              <th className="px-3">Alokasi</th>
+              {/* <th className="px-3">Alokasi</th> */}
             </tr>
           </thead>
           <tbody>
@@ -139,17 +141,17 @@ export default async function PreOrderDetail({ params }: { params: Params }) {
                     )}
                   </td>
                   <td className="px-3">{it.qtyOrdered}</td>
-                  <td className="px-3">{it.qtyAllocated}</td>
+                  {/* <td className="px-3">{it.qtyAllocated}</td> */}
                   <td className="px-3">{it.qtyFulfilled}</td>
                   <td className="px-3 font-medium">{remain}</td>
-                  <td className="px-3">
+                  {/* <td className="px-3">
                     <a
                       className="px-3 py-1.5 rounded-xl border inline-block"
                       href={`/admin/preorders/${po.id}/allocate?item=${it.id}`}
                     >
                       Allocate
                     </a>
-                  </td>
+                  </td> */}
                 </tr>
               );
             })}

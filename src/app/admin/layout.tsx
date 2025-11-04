@@ -42,7 +42,7 @@ function Logo() {
 function Nav() {
   const items = [
     // { href: "/admin", label: "Dashboard" },
-    { href: "/admin/preorders", label: "Pre-Orders" },
+    { href: "/admin/preorders", label: "Pre Orders" },
     // { href: "/admin/entries/bulk", label: "Bulk Entry" },
     { href: "/admin/work-orders", label: "Work Orders" },
     // { href: "/admin/reports", label: "Reports" },

@@ -132,7 +132,7 @@ model PreOrder {
   payments     PaymentRecord[]
   createdBy    String
   createdAt    DateTime        @default(now())
-  WorkOrder    WorkOrder[]
+  workOrder    WorkOrder[]
 }
 
 model PreOrderItem {
@@ -215,7 +215,7 @@ model WorkOrder {
   id           String          @id @default(cuid())
   code         String          @unique
   preOrder     PreOrder?       @relation(fields: [preOrderId], references: [id])
-  preOrderId   String? // jadikan unique untuk pola 1 WO : 1 PO (boleh dihapus unique bila multi-WO per PO)
+  preOrderId   String?         @unique // jadikan unique untuk pola 1 WO : 1 PO (boleh dihapus unique bila multi-WO per PO)
   qtyPlanned   Int
   dueDate      DateTime?
   note         String?

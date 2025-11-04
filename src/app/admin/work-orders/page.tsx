@@ -65,12 +65,12 @@ export default async function WorkOrdersPage() {
                     >
                       Detail
                     </a>
-                    <a
+                    {/* <a
                       className="px-3 py-1.5 rounded-xl border"
                       href={`/admin/work-orders/${wo.id}/edit`}
                     >
                       Edit
-                    </a>
+                    </a> */}
                   </div>
                 </td>
               </tr>

@@ -136,10 +136,10 @@ export default function ProgressClient({
     <div className="space-y-4">
       {/* Ringkasan */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <div className="rounded-2xl border p-3 text-center bg-gray-50">
+        {/* <div className="rounded-2xl border p-3 text-center bg-gray-50">
           <div className="text-xs opacity-70">Planned</div>
           <div className="text-xl font-semibold">{wo.qtyPlanned}</div>
-        </div>
+        </div> */}
         {stages.map((s) => (
           <div key={s.key} className="rounded-2xl border p-3 text-center">
             <div className="text-xs opacity-70">{s.label}</div>
@@ -195,7 +195,7 @@ export default function ProgressClient({
         </div>
 
         {needCost && (
-          <div className="grid md:grid-cols-3 gap-2">
+          <div className="grid md:grid-cols-2 gap-2">
             <input
               className="px-3 py-2 rounded-xl border"
               inputMode="numeric"
@@ -203,13 +203,13 @@ export default function ProgressClient({
               value={unitCost}
               onChange={(e) => setUnitCost(Number(e.target.value || 0))}
             />
-            <input
+            {/* <input
               className="px-3 py-2 rounded-xl border"
               inputMode="numeric"
               placeholder="Biaya Tambahan (Rp)"
               value={extraCost}
               onChange={(e) => setExtraCost(Number(e.target.value || 0))}
-            />
+            /> */}
             {needPartner ? (
               <select
                 className="px-3 py-2 rounded-xl border"
@@ -261,7 +261,7 @@ export default function ProgressClient({
           <tbody>
             {logs.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-3 px-3 text-center">
+                <td colSpan={7} className="py-3 px-3 text-center">
                   Belum ada log
                 </td>
               </tr>

@@ -17,6 +17,7 @@ export async function absoluteFetch<T>(
 ): Promise<T> {
   if (!path.startsWith("/"))
     throw new Error('absoluteFetch expects a "/"-prefixed path');
+
   const base = await getBaseUrl();
   const cookie = (await headers()).get("cookie") ?? "";
   const res = await fetch(base + path, {
@@ -24,11 +25,13 @@ export async function absoluteFetch<T>(
     headers: { ...(init.headers || {}), cookie },
     cache: "no-store",
   });
+
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(
       `Fetch ${path} failed: ${res.status} ${res.statusText} ${txt}`
     );
   }
+
   return res.json() as Promise<T>;
 }
